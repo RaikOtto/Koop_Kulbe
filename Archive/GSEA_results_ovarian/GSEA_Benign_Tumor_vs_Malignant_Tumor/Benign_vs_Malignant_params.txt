@@ -1,0 +1,25 @@
+Run of GSEA on  2016-01-25 14:52:45
+input.ds= /usr/Generic_mRNA_Expression_Pipeline/Project_files/GSE29156_RAW/Input/ExpressionSet.gct
+input.cls= /usr/Generic_mRNA_Expression_Pipeline/Project_files/GSE29156_RAW/Input/phenotypes_GSEA.cls
+gene.ann = 
+gs.db= /usr/Generic_mRNA_Expression_Pipeline/Project_files/GSE29156_RAW/Input/c2.all.v5.1.symbols.gmt
+gs.ann = 
+output.directory = /usr/Generic_mRNA_Expression_Pipeline/Project_files/GSE29156_RAW/Output/GSEA_Results
+doc.string =  Benign_vs_Malignant
+non.interactive.run = FALSE
+reshuffling.type = sample.labels
+nperm = 1000
+weighted.score.type = 1
+nom.p.val.threshold = -1
+fwer.p.val.threshold = -1
+fdr.q.val.threshold = 0.25
+topgs = 20
+adjust.FDR.q.val = FALSE
+gs.size.threshold.min = 15
+gs.size.threshold.max = 500
+reverse.sign = FALSE
+preproc.type = 0
+random.seed = 111
+perm.type = 0
+fraction = 1
+replace = FALSE

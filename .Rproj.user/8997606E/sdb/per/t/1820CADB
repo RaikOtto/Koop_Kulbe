@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "\n# visualization\npdf(\"~/Koop_Kulbe/Results/Healthy_Benign/Volcano.pdf\")\nPlot.NanoStringNorm(eset,plot.type = \"volcano\")\ndev.off()\nsubtype_top_bar = as.matrix( c(\n  colorRampPalette(colors = c(\"blue\"))( dim( traits )[1] ) \n))\n\nsubtype_top_bar[ case, 1  ] = \"yellow\"\n\ncolnames(subtype_top_bar) = c(\"Cohort\")\n\nlogFC_side_bar = t(\n  c(\n    colorRampPalette(colors = c(\"green\"))( length( dif[ dif < 0 ]) ),\n    colorRampPalette(colors = c(\"yellow\"))( length( dif[ dif == 0 ]) ),\n    colorRampPalette(colors = c(\"red\"))( length( dif[ dif > 0 ]) )\n  )\n)\nrownames(logFC_side_bar) = c(\"FoldChange\")\nmcols = colorRampPalette(colors = c(\"green\",\"black\",\"red\"))( 75 )\n#library(devtools)\n#install_github(\"ggbiplot\", \"vqv\")\n\neset_pca = prcomp(\n  t( pure_data ),\n  center = TRUE,\n  scale. = TRUE\n) \nsummary(eset_pca)\n\ncohorts_bar = subtype_top_bar\ncohorts_bar[cohorts_bar ==\"yellow\"  ] = \"Malignant\"\ncohorts_bar[cohorts_bar !=\"Malignant\"  ] = \"Benign\"\n\nlibrary(ggbiplot)\ng = ggbiplot( \n  eset_pca, \n  obs.scale = 1, \n  var.scale = 1,\n  groups = as.character( cohorts_bar ),\n  ellipse = TRUE, \n  circle = TRUE,\n  labels = colnames(pure_data)\n)\ng <- g + scale_color_discrete(name = '')\ng <- g + theme(legend.direction = 'horizontal', \n               legend.position = 'top')\nprint(g)\n\nmeta_data = traits\nrownames(meta_data) = cohorts_t$New_Id[s_match]\nsce <- scater::newSCESet( exprsData = pure_data)\npData(sce) = meta_data\n\nscater::plotPCASCESet(\n  sce,\n  colour_by = \"Group\"\n)\njpg(\"~/MAPTor_Net_RNA_data/Results/tSNE_classification_KNN4.jpeg\")\nscater::plotTSNE(\n  sce,\n  colour_by = \"Group\",\n  #perplexity = 5,\n  check_duplicates = FALSE\n)\ndev.off()\n\ndf = meta_data\n#df$Group[is.na(df$Group)]= \"healthy\"\ndf$Group[ df$Group == \"1\"]= \"benign\"\ndf$Group[ df$Group == \"2\"]= \"malignant\"\nrownames(df) = colnames(cor_mat)\n\npdf(\"~/Koop_Kulbe/Results/Malignant_Benign//PCA.pdf\")\nggbiplot::ggbiplot(\n  pcr_mat,\n  obs.scale = 1, \n  var.scale = 1, \n  labels.size = 4,\n  alpha = 1,\n  groups = df$Group,\n  ellipse = TRUE, \n  circle = TRUE,\n  var.axes = F\n)\ndev.off()\n### additional vis\n\ncor_mat = cor(pure_data)\npcr_mat = prcomp(t(cor_mat))\n\n#aka3 = list(Subtype = c(Alpha = \"red\", Beta = \"blue\", Gamma = \"brown\", Delta = \"green\", Epsilon = \"black\", Unknown = \"gray\", Whole = \"purple\"))\n\npdf(\"~/Koop_Kulbe/Results/Healthy_Malignant/Correlation_heatmap.pdf\")\npheatmap::pheatmap(\n  cor_mat,\n  annotation_col = data.frame( df ),\n  show_rownames = F,\n  show_colnames = F\n  #annotation_colors = aka3,\n  #color =  colorRampPalette(rev(RColorBrewer::brewer.pal(n = 11, name = \"RdYlBu\")))(100)\n)\ndev.off()\n\npdf(\"~/Koop_Kulbe/Results/Healthy_Malignant/Heatmap_absolute.pdf\")\npheatmap::pheatmap(\n  pure_data,\n  annotation_col = data.frame( df ),\n  show_rownames = F,\n  show_colnames = F\n  #annotation_colors = aka3,\n  #color =  colorRampPalette(rev(RColorBrewer::brewer.pal(n = 11, name = \"RdYlBu\")))(100)\n)\ndev.off()\n",
+    "created" : 1519121857637.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "4006644016",
+    "id" : "1820CADB",
+    "lastKnownWriteTime" : 1502365099,
+    "last_content_update" : 1502365099,
+    "path" : "~/Koop_Kulbe/Scripts/Visualization.R",
+    "project_path" : "Scripts/Visualization.R",
+    "properties" : {
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
