@@ -2,21 +2,25 @@ require('NanoStringNorm')
 library("stringr")
 
 cohorts_t = read.table("~/Koop_Kulbe/Misc/cohorts.tsv",sep="\t",header =T, stringsAsFactors = F)
-#raw_data  = read.markup.RCC( rcc.path = "~/Koop_Kulbe/Raw_data/24_samples/Malignant_Benign/")
+raw_data  = read.markup.RCC( rcc.path = "~/Koop_Kulbe/Raw_data/Nanostring_final_samples/")
 #raw_data  = read.markup.RCC( rcc.path = "~/Koop_Kulbe/Raw_data/24_samples/Healthy_Malignant//")
-raw_data  = read.markup.RCC( rcc.path = "~/Koop_Kulbe/Raw_data/24_samples/Healthy_Benign//")
+#raw_data  = read.markup.RCC( rcc.path = "~/Koop_Kulbe/Raw_data/24_samples/Healthy_Benign//")
 
 sample_names = colnames(raw_data$x)[-seq(3)]
 sample_names = str_replace(sample_names, pattern = "^X","")
+colnames(raw_data$x) = str_replace(colnames(raw_data$x), pattern = "^X","")
 sample_names = str_replace_all(sample_names, pattern = "\\.","_")
-s_match = match(sample_names, cohorts_t$Sample_Id, nomatch = 0)
+
+s_match = match( sample_names, cohorts_t$New_Id, nomatch = 0)
 cohort_names = cohorts_t$New_Id[s_match]
 
 meta_data = data.frame( cohorts_t$Malignant[ s_match ] )
 rownames( meta_data ) = colnames(raw_data$x)[-seq(3)]#cohorts_t$New_Id[ s_match]
 colnames(meta_data) = "Group"
-meta_data$Group[ meta_data$Group == 1 ] = 2
-meta_data$Group[ is.na(meta_data$Group)] = 1
+rownames(meta_data) = str_replace( rownames(meta_data), pattern = "^X", "" )
+
+#meta_data$Group[ meta_data$Group == 1 ] = 2
+#meta_data$Group[ is.na(meta_data$Group)] = 1
 
 norm.comp.results.test = norm.comp(raw_data, verbose = F)
 eset = NanoStringNorm::NanoStringNorm( 
