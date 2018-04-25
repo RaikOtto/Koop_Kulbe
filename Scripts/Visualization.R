@@ -1,11 +1,5 @@
-draw_colnames_45 <- function (coln, ...) {
-  m = length(coln)
-  x = (1:m)/m - 1/2/m
-  grid.text(coln, x = x, y = unit(0.96, "npc"), vjust = .5, 
-            hjust = 1, rot = 45, gp = gpar(...)) ## Was 'hjust=0' and 'rot=270'
-}
+library(stringr)
 
-## For pheatmap_1.0.8 and later:
 draw_colnames_45 <- function (coln, gaps, ...) {
   coord = pheatmap:::find_coordinates(length(coln), gaps)
   x = coord$coord - 0.5 * coord$size
@@ -38,7 +32,6 @@ cohorts_bar = subtype_top_bar
 cohorts_bar[cohorts_bar =="yellow"  ] = "Malignant"
 cohorts_bar[cohorts_bar !="Malignant"  ] = "Benign"
 
-
 logFC_side_bar = t(
   c(
     colorRampPalette(colors = c("green"))( length( dif[ dif < 0 ]) ),
@@ -58,13 +51,17 @@ eset_pca = prcomp(
 ) 
 summary(eset_pca)
 
+colors = df$Cohort
+colors[ colors == "Malignant"] = "darkred"
+colors[ colors != "darkred"] = "darkgreen"
+
 library(ggbiplot)
 g = ggbiplot( 
   eset_pca,
   var.axes = F,
-  #obs.scale = 1, 
+  obs.scale = 1,
   #var.scale = 1,
-  groups = as.character( cohorts_bar ),
+  groups = df$Cohort,
   ellipse = TRUE, 
   #circle = TRUE,
   labels = colnames(pure_data)
@@ -80,7 +77,7 @@ pcr_mat = prcomp(t(cor_mat))
 
 #aka3 = list(Subtype = c(Alpha = "red", Beta = "blue", Gamma = "brown", Delta = "green", Epsilon = "black", Unknown = "gray", Whole = "purple"))
 
-pdf("~/Koop_Kulbe/Results/Healthy_Malignant/Correlation_heatmap.pdf")
+#pdf("~/Koop_Kulbe/Results/Healthy_Malignant/Correlation_heatmap.pdf")
     pheatmap::pheatmap(
       cor_mat,
       annotation_col = df[c("Cohort")],
@@ -90,7 +87,7 @@ pdf("~/Koop_Kulbe/Results/Healthy_Malignant/Correlation_heatmap.pdf")
       #annotation_colors = aka3,
       #color =  colorRampPalette(rev(RColorBrewer::brewer.pal(n = 11, name = "RdYlBu")))(100)
     )
-dev.off()
+#dev.off()
 
 #pdf("~/Koop_Kulbe/Results/Healthy_Malignant/Heatmap_absolute.pdf")
 diff_mat = pure_data- rowMeans(pure_data)
@@ -128,20 +125,42 @@ library(stringr)
 library(ggplot2)
 
 p_tab = read.table("~/Koop_Kulbe/Misc/Boxplot_data.tsv",sep ="\t", header = T, stringsAsFactors = F)
-p_tab$P_value = str_replace(p_tab$P_value, pattern = ",", ".")
-p_tab$P_value = as.double(p_tab$P_value)
+p_tab$P_value = str_replace(p_tab$P_value, pattern = ",", "\\.")
+p_tab$P_value = as.double(as.character(p_tab$P_value))
+p_tab$logFC = str_replace(p_tab$logFC, pattern = ",", "\\.")
+p_tab$logFC = as.double(as.character(p_tab$logFC))
+p_tab$FC = str_replace(p_tab$logFC, pattern = ",", "\\.")
+p_tab$FC = as.double(as.character(p_tab$FC))
+p_tab$Expr_Ctrl = str_replace(p_tab$logFC, pattern = ",", "\\.")
+p_tab$Expr_Ctrl = as.double(as.character(p_tab$Expr_Ctrl))
+p_tab$Expr_Case = str_replace(p_tab$logFC, pattern = ",", "\\.")
+p_tab$Expr_Case = as.double(as.character(p_tab$Expr_Case))
 
 p_tab$P_value = log10(p_tab$P_value) * -1
 new_lev = unique( factor(p_tab$Gene) )[ order(p_tab$P_value[p_tab$Group == "OSE_v_OVCA"], decreasing = T) ]
 new_lev = new_lev[ ! is.na(new_lev)]
 p_tab$Gene = factor(p_tab$Gene, levels = new_lev)
 
+#p_tab = subset(p_tab, !is.na(FC))
+vis_mat = reshape2::melt(subset( p_tab, Group == "OSE_v_OVCA") )#Normal_v_Malignant_Stroma
+colnames(vis_mat) = c("Gene", "Group", "Parameter", "Value")
+vis_mat$Value = as.double(as.character(vis_mat$Value))
+
+new_lev = as.factor(unique( vis_mat$Gene[ order( as.double( vis_mat$Value[ vis_mat$Parameter == "P_value"] ), decreasing = T)  ] ))
+new_lev = new_lev[ ! is.na(new_lev)]
+vis_mat$Gene = factor(vis_mat$Gene, levels = new_lev)
+vis_mat$Value[vis_mat$Parameter == "logFC"] = vis_mat$Value[vis_mat$Parameter == "logFC"] * 10
+
 p = ggplot(
-    data = p_tab,
-    aes( x = Gene, y = P_value, fill = Group ) 
+    data = subset( x = vis_mat, Parameter %in% c("P_value","logFC") ) ,
+    aes( x = Gene, y = Value, fill = Parameter ) 
 ) + geom_bar( stat = "identity", position = position_dodge())
 p = p + geom_hline(yintercept = 1.3)
 p = p + theme( legend.position = "top")
-p = p + annotate("text", x = 9.75, y = 1.25, vjust = -1, label = "Significant")
-p = p + annotate("text", x = 9.75, y = 0.75, vjust = -1, label = "Not significant")
+p = p + annotate("text", x = 12.5, y = 2, vjust = -1, label = "Significant", color = "red")
+p = p + annotate("text", x = 12.5, y = -2, vjust = -1, label = "Not significant", color = "black")
+p = p + xlab("") + ylab("Log10 P-value")
+p = p + scale_fill_manual( name = "Parameter", labels=c("P-value", "Log-FC"), values = c("indianred3","slategray3"))
+p = p + scale_y_continuous(sec.axis = sec_axis( ~.*.1, name = "LogFC"))
+p = p + theme(axis.text.x = element_text(angle = 45, hjust = 1))
 p
